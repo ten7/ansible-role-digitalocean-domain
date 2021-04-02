@@ -1,0 +1,62 @@
+---
+- name: Get the first page of domains
+  uri:
+    url: "https://api.digitalocean.com/v2/domains?per_page=10"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ digitalocean_api_token }}"
+    return_content: yes
+  register: _domain_total_number
+
+- name: Get all pages
+  uri:
+    url: "https://api.digitalocean.com/v2/domains?page={{ ansible_loop.index }}&per_page=10"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ digitalocean_api_token }}"
+    return_content: yes
+  loop: "{{ range((_domain_total_number.json.meta.total / 10) | round(0, 'ceil') | int) }}"
+  loop_control:
+    extended: yes
+  register: _domain_list
+
+- name: Flatten the list of results into a single list of domains
+  set_fact:
+    _all_domains: "{{ lookup('flattened', _domain_list.results | map(attribute='json.domains') | list) }}"
+- name: Extract the names from the list
+  set_fact:
+    _all_domain_names: "{{ _all_domains | map(attribute='name') | list }}"
+
+- name: Create the domain
+  uri:
+    url: "https://api.digitalocean.com/v2/domains"
+    method: POST
+    headers:
+      "Authorization": "Bearer {{ digitalocean_api_token }}"
+    return_content: yes
+    status_code:
+      - 201
+    body_format: json
+    body:
+      name: "{{ digitalocean_domain.name }}"
+  register: _domain_create
+  when:
+    - "digitalocean_domain.name not in (_all_domain_names | default([]))"
+    - "digitalocean_domain.state | default('present') == 'present'"
+
+- name: Delete the domain
+  uri:
+    url: "https://api.digitalocean.com/v2/domains/{{ digitalocean_domain.name }}"
+    method: DELETE
+    headers:
+      "Authorization": "Bearer {{ digitalocean_api_token }}"
+    return_content: yes
+    status_code:
+      - 204
+    body_format: json
+    body:
+      name: "{{ digitalocean_domain.name }}"
+  register: _domain_create
+  when:
+    - "digitalocean_domain.name in (_all_domain_names | default([]))"
+    - "digitalocean_domain.state | default('present') == 'absent'"

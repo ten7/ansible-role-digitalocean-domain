@@ -1,0 +1,7 @@
+---
+- name: Manage domains
+  include_tasks: 'domains.yml'
+- name: Manage domain records
+  include_tasks: 'records.yml'
+  when:
+    - "digitalocean_domain.state | default('present') == 'present'"
