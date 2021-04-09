@@ -70,6 +70,7 @@ None, but the following roles are recommended:
 
 ## Example Playbook
 
+```yaml
     ---
     - hosts: all
       vars:
@@ -82,6 +83,46 @@ None, but the following roles are recommended:
               type: "A"
               value: "127.0.0.1"
               state: absent
+
+      tasks:
+        - name: provision domains
+          include_role:
+            name: "ten7.digitalocean_domain"
+```
+## Provisioning multiple domains
+
+One limitation of this role is it can only be run on one domain at a time. This was done to make the role easier to read and maintain. Since the role is re-entrant, you can run it in a loop:
+
+```yaml
+    ---
+    - hosts: all
+      vars:
+        digitalocean_api_token: '1234567890abscdefg'
+        _all_my_domains:
+          - name: 'example.com'
+            state: present
+            records:
+              - name: "@"
+                type: "A"
+                value: "127.0.0.1"
+                state: present
+          - name: 'foo.test'
+            state: present
+            records:
+              - name: "@"
+                type: "A"
+                value: "127.0.0.1"
+                state: present
+
+      tasks:
+        - name: Provision domains
+          include_role:
+            name: "ten7.digitalocean_domain"
+          loop: "{{ _all_my_domains }}"
+          loop_control:
+            label: "{{ digitalocean_domain.name }}"
+            loop_var: digitalocean_domain
+```
 
 ## License
 
