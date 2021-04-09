@@ -65,8 +65,8 @@ Where, in each list item:
 
 None, but the following roles are recommended:
 
-* [socketwench/digitalocean](https://galaxy.ansible.com/socketwench/digitalocean)
-* [socketwench/digitalocean_kubeconfig](https://galaxy.ansible.com/socketwench/digitalocean_kubeconfig)
+* [ten7/digitalocean](https://galaxy.ansible.com/ten7/digitalocean)
+* [ten7/digitalocean_kubeconfig](https://galaxy.ansible.com/ten7/digitalocean_kubeconfig)
 
 ## Example Playbook
 
