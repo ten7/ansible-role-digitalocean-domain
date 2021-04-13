@@ -10,14 +10,12 @@
 
 - name: Get all domain record pages
   uri:
-    url: "https://api.digitalocean.com/v2/domains/{{ digitalocean_domain.name }}/records?page={{ ansible_loop.index }}&per_page=10"
+    url: "https://api.digitalocean.com/v2/domains/{{ digitalocean_domain.name }}/records?page={{ item }}&per_page=10"
     method: GET
     headers:
       Authorization: "Bearer {{ digitalocean_api_token }}"
     return_content: yes
-  loop: "{{ range((_record_total_number.json.meta.total / 10) | round(0, 'ceil') | int) }}"
-  loop_control:
-    extended: yes
+  with_sequence: start=1 count={{ (_domain_total_number.json.meta.total / 10) | round(0, 'ceil') | int }}
   register: _record_list
 
 - name: Flatten the list of results into a single list of domains
