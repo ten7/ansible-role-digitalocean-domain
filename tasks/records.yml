@@ -15,7 +15,7 @@
     headers:
       Authorization: "Bearer {{ digitalocean_api_token }}"
     return_content: yes
-  with_sequence: start=1 count={{ (_domain_total_number.json.meta.total / 10) | round(0, 'ceil') | int }}
+  with_sequence: start=1 count={{ (_record_total_number.json.meta.total / 10) | round(0, 'ceil') | int }}
   register: _record_list
 
 - name: Flatten the list of results into a single list of domains
