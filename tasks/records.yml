@@ -46,7 +46,13 @@
   when:
     - "(_all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | map(attribute='id') | first | default('')) == ''"
 
-- name: Build a list record IDs to update
+# Since the following set_fact is in a loop, we need to clear it so that any
+# previous values don't poke through.
+- name: Create an empty list for record IDs in need of update
+  set_fact:
+    _records_to_update: []
+
+- name: Populate the list with record IDs in need of update
   set_fact:
     _records_to_update: "{{ (_records_to_update | default([])) + [item | combine({'id': _record_id})] }}"
   loop: "{{ digitalocean_domain.records }}"
