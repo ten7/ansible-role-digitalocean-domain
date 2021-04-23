@@ -44,7 +44,7 @@
       tag: "{{ item.tag | default(omit) }}"
   loop: "{{ digitalocean_domain.records }}"
   when:
-    - "(_all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | map(attribute='id') | first | default('')) == ''"
+    - "(_all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | selectattr('data', 'equalto', item.value) | map(attribute='id') | first | default('')) == ''"
 
 # Since the following set_fact is in a loop, we need to clear it so that any
 # previous values don't poke through.
@@ -57,7 +57,7 @@
     _records_to_update: "{{ (_records_to_update | default([])) + [item | combine({'id': _record_id})] }}"
   loop: "{{ digitalocean_domain.records }}"
   vars:
-    _record_id: "{{ _all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | map(attribute='id') | first | default('') }}"
+    _record_id: "{{ _all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | selectattr('data', 'equalto', item.value) | map(attribute='id') | first | default('') }}"
   when:
     - "_record_id != ''"
 

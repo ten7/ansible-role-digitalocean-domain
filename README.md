@@ -61,6 +61,37 @@ Where, in each list item:
 * **flags** is an unsigned integer between 0-255 for `CCA` records.
 * **tag** is the parameter tag for `CAA` records. Valid values are `issue`, `issuewild`, or `iodef`.
 
+## Limitations
+
+### Updating the record value
+
+The DigitalOcean API relies on internally generated IDs to update records. Since this role does not use IDs, it relies on the record type, name, and value instead to determine a match when doing updates or deletions of records.
+
+This creates a problem when if your update involves changing the value of a record, as the role cannot tell if you're updating an existing record, or making a new one.
+
+To solve this you can either update the record manually prior to deployment, or explicitly delete the existing record in code:
+
+```yaml
+digitalocean_domain:
+  name: 'example.com'
+  state: present
+  records:
+    - name: "@"
+      type: "A"
+      value: "127.0.0.1"
+      state: absent
+    - name: "@"
+      type: "A"
+      value: "192.168.1.1"
+      state: present
+```
+
+### Unchanged records always update
+
+Another limitation is that even if a record has no changes from the last invocation, the role will still call the API to update the record. Since the update record is the same as the old record, no effective change has been made, but it does result in additional API calls to DigitalOcean. 
+
+Once deployed, you remove the `absent` records in successive deployments as they are no longer necessary.
+
 ## Dependencies
 
 None, but the following roles are recommended:
