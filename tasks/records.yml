@@ -75,7 +75,7 @@
     body:
       type: "{{ item.type }}"
       name: "{{ item.name }}"
-      data: "{{ item.value }}{% if (item.type == 'CNAME') or (item.type == 'NS') %}.{% endif %}"
+      data: "{{ item.value }}{% if (item.type == 'CNAME') or (item.type == 'NS') or (item.type == 'MX') %}.{% endif %}"
       priority: "{{ item.priority | default('null') }}"
       port: "{{ item.port | default('null') }}"
       ttl: "{{ item.ttl | default('1800') }}"
