@@ -35,16 +35,41 @@
     body:
       type: "{{ item.type }}"
       name: "{{ item.name }}"
-      data: "{{ item.value }}{% if (item.type == 'CNAME') or (item.type == 'NS') %}.{% endif %}"
+      data: "{{ item.value }}{% if (item.type == 'CNAME') or (item.type == 'NS') or (item.type == 'MX') %}.{% endif %}"
       priority: "{{ item.priority | default(omit) }}"
       port: "{{ item.port | default(omit) }}"
       ttl: "{{ item.ttl | default(omit) }}"
       weight: "{{ item.weight | default(omit) }}"
       flags: "{{ item.flags | default(omit) }}"
       tag: "{{ item.tag | default(omit) }}"
-  loop: "{{ digitalocean_domain.records }}"
+  loop: "{{ digitalocean_domain.records | selectattr('type', 'ne', 'SRV') | list }}"
   when:
     - "(_all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | selectattr('data', 'equalto', item.value) | map(attribute='id') | first | default('')) == ''"
+    - "item.type != 'SRV'"
+
+- name: Create SRV records
+  uri:
+    url: "https://api.digitalocean.com/v2/domains/{{ digitalocean_domain.name }}/records"
+    method: POST
+    headers:
+      "Authorization": "Bearer {{ digitalocean_api_token }}"
+    return_content: yes
+    status_code:
+      - 201
+    body_format: json
+    body:
+      type: "{{ item.type }}"
+      name: "{{ item.name }}"
+      data: "{{ item.value }}{% if (item.type == 'CNAME') or (item.type == 'NS') or (item.type == 'MX') %}.{% endif %}"
+      priority: "{{ item.priority | default(omit) }}"
+      port: "{{ item.port | default(omit) }}"
+      ttl: "{{ item.ttl | default(omit) }}"
+      weight: "{{ item.weight | default(omit) }}"
+      flags: "{{ item.flags | default(omit) }}"
+      tag: "{{ item.tag | default(omit) }}"
+  loop: "{{ digitalocean_domain.records | selectattr('type', 'eq', 'SRV') | list }}"
+  when:
+    - "(_all_records | selectattr('type', 'equalto', item.type) | selectattr('name', 'equalto', item.name) | selectattr('data', 'equalto', (item.value + '.' + digitalocean_domain.name)) | map(attribute='id') | first | default('')) == ''"
 
 # Since the following set_fact is in a loop, we need to clear it so that any
 # previous values don't poke through.
